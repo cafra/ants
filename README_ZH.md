@@ -6,8 +6,8 @@
 
 [![Build Status][1]][2]
 [![codecov][3]][4]
-[![goreportcard for panjf2000/ants][5]][6]
-[![godoc for panjf2000/ants][7]][8]
+[![goreportcard for cafra/ants][5]][6]
+[![godoc for cafra/ants][7]][8]
 [![MIT Licence][9]][10]
 
 [英文](README.md) | [项目介绍文章传送门](http://blog.taohuawu.club/article/goroutine-pool)
@@ -34,13 +34,13 @@
 ## 安装
 
 ``` sh
-go get -u github.com/panjf2000/ants
+go get -u github.com/cafra/ants
 ```
 
 使用包管理工具 glide 安装:
 
 ``` sh
-glide get github.com/panjf2000/ants
+glide get github.com/cafra/ants
 ```
 
 ## 使用
@@ -55,7 +55,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/panjf2000/ants"
+	"github.com/cafra/ants"
 )
 
 var sum int32
@@ -116,7 +116,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/panjf2000/ants"
+	"github.com/cafra/ants"
 )
 
 type Request struct {
@@ -249,13 +249,13 @@ Go Version: 1.9
 
 **从该demo测试吞吐性能对比可以看出，使用`ants`的吞吐性能相较于原生goroutine可以保持在2-6倍的性能压制，而内存消耗则可以达到10-20倍的节省优势。** 
 
-[1]: https://travis-ci.com/panjf2000/ants.svg?branch=master
-[2]: https://travis-ci.com/panjf2000/ants
-[3]: https://codecov.io/gh/panjf2000/ants/branch/master/graph/badge.svg
-[4]: https://codecov.io/gh/panjf2000/ants
-[5]: https://goreportcard.com/badge/github.com/panjf2000/ants
-[6]: https://goreportcard.com/report/github.com/panjf2000/ants
-[7]: https://godoc.org/github.com/panjf2000/ants?status.svg
-[8]: https://godoc.org/github.com/panjf2000/ants
+[1]: https://travis-ci.com/cafra/ants.svg?branch=master
+[2]: https://travis-ci.com/cafra/ants
+[3]: https://codecov.io/gh/cafra/ants/branch/master/graph/badge.svg
+[4]: https://codecov.io/gh/cafra/ants
+[5]: https://goreportcard.com/badge/github.com/cafra/ants
+[6]: https://goreportcard.com/report/github.com/cafra/ants
+[7]: https://godoc.org/github.com/cafra/ants?status.svg
+[8]: https://godoc.org/github.com/cafra/ants
 [9]: https://badges.frapsoft.com/os/mit/mit.svg?v=103
 [10]: https://opensource.org/licenses/mit-license.php

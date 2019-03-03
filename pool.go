@@ -32,38 +32,66 @@ import (
 // of goroutines to a given number by recycling goroutines.
 type Pool struct {
 	// capacity of the pool.
+	// 最大容量阈值
 	capacity int32
 
 	// running is the number of the currently running goroutines.
+	// 运行grt数量
 	running int32
 
 	// expiryDuration set the expired time (second) of every worker.
+	// 有效期，单位s
 	expiryDuration time.Duration
 
 	// workers is a slice that store the available workers.
+	// 可用workers
 	workers []*Worker
 
 	// release is used to notice the pool to closed itself.
+	// 关闭通知 1关闭
 	release int32
 
 	// lock for synchronous operation.
+	// 同步锁，同步控制workers
 	lock sync.Mutex
 
 	// cond for waiting to get a idle worker.
+	// 获得空闲worker的条件变量
 	cond *sync.Cond
 
 	// once makes sure releasing this pool will just be done for one time.
+	// 实例只执行一次操作
 	once sync.Once
 
 	// workerCache speeds up the obtainment of the an usable worker in function:retrieveWorker.
+	// worker pool 注意初始化
+	/*
+		Get返回Pool中的任意一个对象。
+
+	如果Pool为空，则调用New返回一个新创建的对象。
+
+	如果没有设置New，则返回nil。
+
+	还有一个重要的特性是，放进Pool中的对象，会在说不准什么时候被回收掉。
+
+	所以如果事先Put进去100个对象，下次Get的时候发现Pool是空也是有可能的。
+
+	不过这个特性的一个好处就在于不用担心Pool会一直增长，因为Go已经帮你在Pool中做了回收机制。
+
+	这个清理过程是在每次垃圾回收之前做的。垃圾回收是固定两分钟触发一次。
+
+	而且每次清理会将Pool中的所有对象都清理掉！
+	*/
 	workerCache sync.Pool
 
 	// PanicHandler is used to handle panics from each worker goroutine.
 	// if nil, panics will be thrown out again from worker goroutines.
+	// 每个grt的异常处理
 	PanicHandler func(interface{})
 }
 
 // clear expired workers periodically.
+// 开启定时清理 worker 的grt
 func (p *Pool) periodicallyPurge() {
 	heartbeat := time.NewTicker(p.expiryDuration)
 	defer heartbeat.Stop()
@@ -113,7 +141,9 @@ func NewTimingPool(size, expiry int) (*Pool, error) {
 		capacity:       int32(size),
 		expiryDuration: time.Duration(expiry) * time.Second,
 	}
+	// 初始化条件变量
 	p.cond = sync.NewCond(&p.lock)
+	//开启定时清理 worker 的grt
 	go p.periodicallyPurge()
 	return p, nil
 }
@@ -125,6 +155,7 @@ func (p *Pool) Submit(task func()) error {
 	if 1 == atomic.LoadInt32(&p.release) {
 		return ErrPoolClosed
 	}
+	// 获取worker 且传递task
 	p.retrieveWorker().task <- task
 	return nil
 }
@@ -185,18 +216,24 @@ func (p *Pool) decRunning() {
 }
 
 // retrieveWorker returns a available worker to run the tasks.
+// 获取worker
 func (p *Pool) retrieveWorker() *Worker {
 	var w *Worker
 
+	//枷锁
 	p.lock.Lock()
 	idleWorkers := p.workers
 	n := len(idleWorkers) - 1
+	// 如果有空闲worker,取最后的
 	if n >= 0 {
 		w = idleWorkers[n]
 		idleWorkers[n] = nil
 		p.workers = idleWorkers[:n]
 		p.lock.Unlock()
+		// 注意，空闲队列的worker是running状态，所以不需要run
 	} else if p.Running() < p.Cap() {
+		// 没有空闲，且运行grt < 最大数量阈值
+		// 则pool 创建
 		p.lock.Unlock()
 		if cacheWorker := p.workerCache.Get(); cacheWorker != nil {
 			w = cacheWorker.(*Worker)
@@ -206,14 +243,19 @@ func (p *Pool) retrieveWorker() *Worker {
 				task: make(chan func(), workerChanCap),
 			}
 		}
+		// 首次创建、或者pool 获取的worker 需要运行;
 		w.run()
 	} else {
+		// 否则，等待条件变量通知
 		for {
+			// 阻塞等待
 			p.cond.Wait()
+			// 如果没有空闲，则继续等待（已经加锁）
 			l := len(p.workers) - 1
 			if l < 0 {
 				continue
 			}
+			// 取出空闲worker
 			w = p.workers[l]
 			p.workers[l] = nil
 			p.workers = p.workers[:l]
@@ -230,6 +272,7 @@ func (p *Pool) revertWorker(worker *Worker) {
 	p.lock.Lock()
 	p.workers = append(p.workers, worker)
 	// Notify the invoker stuck in 'retrieveWorker()' of there is an available worker in the worker queue.
+	// 通知等待请求，新worker 产生
 	p.cond.Signal()
 	p.lock.Unlock()
 }

@@ -27,7 +27,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/panjf2000/ants"
+	"github.com/cafra/ants"
 )
 
 const (

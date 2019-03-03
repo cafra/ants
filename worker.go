@@ -32,24 +32,31 @@ import (
 // performs function calls.
 type Worker struct {
 	// pool who owns this worker.
+	// 所属的pool
 	pool *Pool
 
 	// task is a job should be done.
+	// task job
 	task chan func()
 
 	// recycleTime will be update when putting a worker back into queue.
+	// 返回队列时间
 	recycleTime time.Time
 }
 
 // run starts a goroutine to repeat the process
 // that performs the function calls.
 func (w *Worker) run() {
+	// 增加pool run 计数
 	w.pool.incRunning()
+	// 启动grt
 	go func() {
 		defer func() {
 			if p := recover(); p != nil {
+				// 如果发生panic
 				w.pool.decRunning()
 				if w.pool.PanicHandler != nil {
+					// 异常处理
 					w.pool.PanicHandler(p)
 				} else {
 					log.Printf("worker exits from a panic: %v", p)
@@ -59,11 +66,16 @@ func (w *Worker) run() {
 
 		for f := range w.task {
 			if f == nil {
+				// 执行结束
+				// dec 计数
 				w.pool.decRunning()
+				// pool put 回收
 				w.pool.workerCache.Put(w)
 				return
 			}
+			// 收到job，执行
 			f()
+			// 归还worker
 			w.pool.revertWorker(w)
 		}
 	}()

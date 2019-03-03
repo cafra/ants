@@ -28,7 +28,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/panjf2000/ants"
+	"github.com/cafra/ants"
 )
 
 var sum int32

@@ -51,6 +51,8 @@ var (
 
 	// workerChanCap determines whether the channel of a worker should be a buffered channel
 	// to get the best performance. Inspired by fasthttp at https://github.com/valyala/fasthttp/blob/master/workerpool.go#L139
+	// 单进程的无缓存,同步
+	// 多进程的有缓存,异步
 	workerChanCap = func() int {
 		// Use blocking workerChan if GOMAXPROCS=1.
 		// This immediately switches Serve to WorkerFunc, which results
@@ -65,7 +67,7 @@ var (
 		return 1
 	}()
 
-    defaultAntsPool, _ = NewPool(DefaultAntsPoolSize)
+	defaultAntsPool, _ = NewPool(DefaultAntsPoolSize)
 )
 
 // Init a instance pool when importing ants.

@@ -6,8 +6,8 @@
 
 [![Build Status][1]][2]
 [![codecov][3]][4]
-[![goreportcard for panjf2000/ants][5]][6]
-[![godoc for panjf2000/ants][7]][8]
+[![goreportcard for cafra/ants][5]][6]
+[![godoc for cafra/ants][7]][8]
 [![MIT Licence][9]][10]
 
 [中文](README_ZH.md) | [Project Tutorial](http://blog.taohuawu.club/article/goroutine-pool)
@@ -34,13 +34,13 @@ Library `ants` implements a goroutine pool with fixed capacity, managing and rec
 ## How to install
 
 ``` sh
-go get -u github.com/panjf2000/ants
+go get -u github.com/cafra/ants
 ```
 
 Or, using glide:
 
 ``` sh
-glide get github.com/panjf2000/ants
+glide get github.com/cafra/ants
 ```
 
 ## How to use
@@ -55,7 +55,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/panjf2000/ants"
+	"github.com/cafra/ants"
 )
 
 var sum int32
@@ -116,7 +116,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/panjf2000/ants"
+	"github.com/cafra/ants"
 )
 
 type Request struct {
@@ -252,13 +252,13 @@ In above benchmark picture, the first and second benchmarks performed test cases
 
 **In conclusion, `ants` can up to 2x~6x faster than goroutines without a pool and the memory consumption is reduced by 10 to 20 times.**
 
-[1]: https://travis-ci.com/panjf2000/ants.svg?branch=master
-[2]: https://travis-ci.com/panjf2000/ants
-[3]: https://codecov.io/gh/panjf2000/ants/branch/master/graph/badge.svg
-[4]: https://codecov.io/gh/panjf2000/ants
-[5]: https://goreportcard.com/badge/github.com/panjf2000/ants
-[6]: https://goreportcard.com/report/github.com/panjf2000/ants
-[7]: https://godoc.org/github.com/panjf2000/ants?status.svg
-[8]: https://godoc.org/github.com/panjf2000/ants
+[1]: https://travis-ci.com/cafra/ants.svg?branch=master
+[2]: https://travis-ci.com/cafra/ants
+[3]: https://codecov.io/gh/cafra/ants/branch/master/graph/badge.svg
+[4]: https://codecov.io/gh/cafra/ants
+[5]: https://goreportcard.com/badge/github.com/cafra/ants
+[6]: https://goreportcard.com/report/github.com/cafra/ants
+[7]: https://godoc.org/github.com/cafra/ants?status.svg
+[8]: https://godoc.org/github.com/cafra/ants
 [9]: https://badges.frapsoft.com/os/mit/mit.svg?v=103
 [10]: https://opensource.org/licenses/mit-license.php
