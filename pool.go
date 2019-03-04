@@ -93,6 +93,7 @@ type Pool struct {
 // clear expired workers periodically.
 // 开启定时清理 worker 的grt
 func (p *Pool) periodicallyPurge() {
+	// 定时器
 	heartbeat := time.NewTicker(p.expiryDuration)
 	defer heartbeat.Stop()
 
@@ -100,23 +101,33 @@ func (p *Pool) periodicallyPurge() {
 		currentTime := time.Now()
 		p.lock.Lock()
 		idleWorkers := p.workers
+
+		// 如果已经关闭、且没有正在运行、dile的work 则关闭定时程序
 		if len(idleWorkers) == 0 && p.Running() == 0 && atomic.LoadInt32(&p.release) == 1 {
 			p.lock.Unlock()
 			return
 		}
 		n := -1
+		// slice中前边的空闲时间长
 		for i, w := range idleWorkers {
+			// 未过期则忽略
 			if currentTime.Sub(w.recycleTime) <= p.expiryDuration {
 				break
 			}
+			// 否则关闭，放回pool
 			n = i
 			w.task <- nil
+			// nil引用，则可以释放
 			idleWorkers[i] = nil
 		}
+		// 如果有空闲的被清理掉
 		if n > -1 {
+			// 全部释放
 			if n >= len(idleWorkers)-1 {
+				// 清空slice 的len ,但是cap 不变
 				p.workers = idleWorkers[:0]
 			} else {
+				// 否则释放前n个worker
 				p.workers = idleWorkers[n+1:]
 			}
 		}
@@ -159,17 +170,19 @@ func (p *Pool) Submit(task func()) error {
 	p.retrieveWorker().task <- task
 	return nil
 }
-
+// 获取正在运行的worker数量:正在运行的+idle
 // Running returns the number of the currently running goroutines.
 func (p *Pool) Running() int {
 	return int(atomic.LoadInt32(&p.running))
 }
-
+// 获取剩余worker数量
 // Free returns the available goroutines to work.
 func (p *Pool) Free() int {
 	return int(atomic.LoadInt32(&p.capacity) - atomic.LoadInt32(&p.running))
 }
 
+
+// 获取最大worker 阈值
 // Cap returns the capacity of this pool.
 func (p *Pool) Cap() int {
 	return int(atomic.LoadInt32(&p.capacity))
@@ -182,6 +195,7 @@ func (p *Pool) Tune(size int) {
 	}
 	atomic.StoreInt32(&p.capacity, int32(size))
 	diff := p.Running() - size
+	// 释放多余worker
 	for i := 0; i < diff; i++ {
 		p.retrieveWorker().task <- nil
 	}
@@ -189,14 +203,19 @@ func (p *Pool) Tune(size int) {
 
 // Release Closes this pool.
 func (p *Pool) Release() error {
+	// 只执行一次
 	p.once.Do(func() {
+		// 关闭
 		atomic.StoreInt32(&p.release, 1)
 		p.lock.Lock()
 		idleWorkers := p.workers
 		for i, w := range idleWorkers {
+			// 关闭worker
 			w.task <- nil
+			// 清空成员
 			idleWorkers[i] = nil
 		}
+		// 清空slice
 		p.workers = nil
 		p.lock.Unlock()
 	})

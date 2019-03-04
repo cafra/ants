@@ -75,7 +75,7 @@ func (w *Worker) run() {
 			}
 			// 收到job，执行
 			f()
-			// 归还worker
+			// 归还worker，放在slice 尾部
 			w.pool.revertWorker(w)
 		}
 	}()
